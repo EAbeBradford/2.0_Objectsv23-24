@@ -13,6 +13,8 @@
 
 //Graphics Libraries
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferStrategy;
 import java.awt.*;
 import javax.swing.JFrame;
@@ -22,7 +24,7 @@ import javax.swing.JPanel;
 //*******************************************************************************
 // Class Definition Section
 
-public class BasicGameApp implements Runnable {
+public class BasicGameApp implements Runnable, KeyListener {
 
    //Variable Definition Section
    //Declare the variables used in the program 
@@ -39,13 +41,16 @@ public class BasicGameApp implements Runnable {
    
 	public BufferStrategy bufferStrategy;
 	public Image astroPic;
+	public Image astroLeftPic;
+	public Image astroRightPic;
 	public Image background;
 
    //Declare the objects used in the program
    //These are things that are made up of more than one variable type
 	private Astronaut astro;
 	private Astronaut astro2;
-
+	private Astronaut astro3;
+	public Astronaut[] astros = new Astronaut[100];
 
    // Main method definition
    // This is the code that runs first and automatically
@@ -66,8 +71,19 @@ public class BasicGameApp implements Runnable {
       //variable and objects
       //create (construct) the objects needed for the game and load up 
 		astroPic = Toolkit.getDefaultToolkit().getImage("astronaut.png"); //load the picture
-		astro = new Astronaut ((int)(Math.random()*940),(int)(Math.random()*700));
+		astroLeftPic = Toolkit.getDefaultToolkit().getImage("astroLeft.jpg");
+		astroRightPic = Toolkit.getDefaultToolkit().getImage("astroRight.jpg");
+		astro = new Astronaut (100,(int)(Math.random()*700));
+		astro.dx = 10;
+		//as
 		astro2 = new Astronaut ((int)(Math.random()*940),(int)(Math.random()*700));
+		astro3 = new Astronaut ((int)(Math.random()*940),(int)(Math.random()*700));
+		astro3.isAlive = false;
+		astro2.dx= -2;
+
+		for(int z = 0; z < astros.length;z++ ){
+			astros[z] = new Astronaut ((int)(Math.random()*940),(int)(Math.random()*700));
+		}
 
 		background = Toolkit.getDefaultToolkit().getImage("stars.jpg"); //load the picture
 
@@ -94,13 +110,53 @@ public class BasicGameApp implements Runnable {
 	}
 
 
-	public void moveThings()
-	{
+	public void moveThings() {
+
+		for(int x = 0; x < astros.length; x++) {
+			astros[x].bounce();
+		}
+
+
+		//check astro intersect with astros
+		for(int x = 0; x < astros.length; x++){
+			if(astro.rec.intersects(astros[x].rec) && astro.isCrashing == false){
+				astro.height = 10+ astro.height;
+				astro.width = 10+ astro.width;
+
+			}
+		}
+
+
+		for(int z = 0; z< astros.length; z++){
+			for(int y = z+1;y<astros.length; y++){
+				if(astros[z].rec.intersects(astros[y].rec) && astros[z].isCrashing== false){
+					System.out.println("crashing astros!");
+				}
+			}
+		}
+
       //calls the move( ) code in the objects
 		astro.wrap();
 		astro2.bounce();
-		if(astro.rec.intersects(astro2.rec)){
+		astro3.bounce();
+		if(astro.rec.intersects(astro2.rec)  &&
+				astro.isCrashing == false){
 			System.out.println("Crash");
+			//astro.dx = -astro.dx;
+			//astro2.dx = -astro2.dx;
+			astro.height = astro.height+50;
+			astro.isCrashing = true;
+			if(astro3.isAlive == false) {
+				astro3.isAlive = true;
+				astro3.xpos = astro.xpos;
+				astro3.ypos = astro.ypos;
+			}
+
+
+		}
+
+		if(astro.rec.intersects(astro2.rec) == false){
+			astro.isCrashing = false;
 		}
 	}
 	
@@ -127,6 +183,7 @@ public class BasicGameApp implements Runnable {
       canvas = new Canvas();  
       canvas.setBounds(0, 0, WIDTH, HEIGHT);
       canvas.setIgnoreRepaint(true);
+	  canvas.addKeyListener(this);
    
       panel.add(canvas);  // adds the canvas to the panel.
    
@@ -153,10 +210,69 @@ public class BasicGameApp implements Runnable {
 
       //draw the image of the astronaut
 		g.drawImage(astroPic, astro.xpos, astro.ypos, astro.width, astro.height, null);
-		g.drawImage(astroPic, astro2.xpos, astro2.ypos, astro2.width, astro2.height, null);
 
+		for(int x = 0; x < astros.length; x++){
+			g.drawImage(astroPic, astros[x].xpos, astros[x].ypos, astros[x].width,
+					astros[x].height, null);
+		}
+
+		if(astro2.dx>0){
+			g.drawImage(astroLeftPic, astro2.xpos, astro2.ypos, astro2.width, astro2.height, null);
+
+		}else {
+			g.drawImage(astroRightPic, astro2.xpos, astro2.ypos, astro2.width, astro2.height, null);
+		}
+		if(astro3.isAlive) {
+			g.drawImage(astroPic, astro3.xpos, astro3.ypos, astro3.width, astro3.height, null);
+		}
 		g.dispose();
 
 		bufferStrategy.show();
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		System.out.println(e.getKeyCode());
+		if(e.getKeyCode() == 38){
+			System.out.println("going up");
+			astro.isNorth = true;
+		}
+		if(e.getKeyCode() == 40){
+			System.out.println("going down");
+			astro.isSouth = true;
+		}
+		if(e.getKeyCode() == 37){
+			System.out.println("going left");
+			astro.isLeft = true;
+		}
+		if(e.getKeyCode() == 39){
+			System.out.println("going right");
+			astro.isRight = true;
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if(e.getKeyCode() == 38){
+			System.out.println("going up");
+			astro.isNorth = false;
+		}
+		if(e.getKeyCode() == 40){
+			System.out.println("going down");
+			astro.isSouth = false;
+		}
+		if(e.getKeyCode() == 37){
+			System.out.println("going left");
+			astro.isLeft = false;
+		}
+		if(e.getKeyCode() == 39){
+			System.out.println("going right");
+			astro.isRight = false;
+		}
 	}
 }

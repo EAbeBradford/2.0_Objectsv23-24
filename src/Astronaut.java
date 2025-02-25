@@ -16,6 +16,13 @@ public class Astronaut {
     public int height;
     public boolean isAlive;            //a boolean to denote if the hero is alive or dead.
     public Rectangle rec;
+    public boolean isCrashing;
+
+    public boolean isNorth;
+    public boolean isSouth;
+    public  boolean isLeft;
+    public boolean isRight;
+
 
     // METHOD DEFINITION SECTION
 
@@ -34,7 +41,11 @@ public class Astronaut {
         height =60;
         isAlive = true;
         rec = new Rectangle(xpos, ypos, width, height);
- 
+        isCrashing = false;
+        isNorth = false;
+        isSouth = false;
+        isLeft = false;
+        isRight = false;
     } // constructor
 
     //The move method.  Everytime this is run (or "called") the hero's x position and y position change by dx and dy
@@ -48,12 +59,20 @@ public class Astronaut {
     }
 
     public void bounce() {
+
         if(xpos < 0){ // bounce off the east wall
             dx = -dx;
         }
         //bounce west wall
-        if(xpos > 940){
+        if(xpos > 1000-width){
             dx = -dx;
+        }
+        if(ypos < 0){ // bounce off the north wall
+            dy = -dy;
+        }
+        //bounce south wall
+        if(ypos > 700-height){
+            dy = -dy;
         }
         xpos = xpos + dx;
         ypos = ypos + dy;
@@ -62,21 +81,41 @@ public class Astronaut {
 
     }
     public void wrap(){
+
+       // dy is 0
+        if(isNorth == false && isSouth == false){
+            dy = 0;
+        } else if(isNorth){   //dy -3
+            dy = -3;
+        } else {   //dy 3
+            dy = 3;
+        }
+
+
+
+
+//        if(isNorth == false){
+//            dy = 0;
+//        }
+
+//        if(isSouth  == false){
+//            dy = 0;
+//        }
         //wrap west wall
         if(xpos < 0){
-            xpos = 940;
+            xpos = 1000-width;
         }
 
         //wrap for east
-        if(xpos > 940){
+        if(xpos > 1000-width){
             xpos = 0;
         }
         // wrap north
         if(ypos < 0){
-            ypos = 640;
+            ypos = 700-height;
         }
         //south wall
-        if(ypos >640){
+        if(ypos >700-height){
             ypos = 0;
         }
         xpos = xpos + dx;
